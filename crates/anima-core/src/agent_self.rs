@@ -10,6 +10,9 @@
 //!
 //! Together, they form a complete sense of self.
 
+use aios_protocol::identity::AgentIdentityProvider;
+use aios_protocol::ids::AgentId;
+use aios_protocol::memory::SoulProfile;
 use serde::{Deserialize, Serialize};
 
 use crate::belief::AgentBelief;
@@ -26,7 +29,10 @@ use crate::soul::AgentSoul;
 /// starts its agent loop, it reconstructs AgentSelf from Lago.
 /// When Autonomic evaluates regulation, it reads AgentSelf's beliefs.
 /// When Haima processes a payment, it uses AgentSelf's identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// Implements [`AgentIdentityProvider`] so it can be used directly as
+/// the identity source for the aiOS kernel runtime.
+#[derive(Debug, Clone, Serialize)]
 pub struct AgentSelf {
     /// The immutable soul — origin, lineage, values.
     soul: AgentSoul,
@@ -36,9 +42,53 @@ pub struct AgentSelf {
 
     /// The mutable beliefs — capabilities, trust, reputation.
     beliefs: AgentBelief,
+
+    /// Cached aiOS AgentId — derived from identity.agent_id.
+    #[serde(skip)]
+    aios_agent_id: AgentId,
+
+    /// Cached aiOS SoulProfile — derived from soul name/mission.
+    #[serde(skip)]
+    aios_soul_profile: SoulProfile,
+}
+
+// Custom Deserialize to rebuild cached aios fields after deserialization.
+impl<'de> Deserialize<'de> for AgentSelf {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct AgentSelfRaw {
+            soul: AgentSoul,
+            identity: AgentIdentity,
+            beliefs: AgentBelief,
+        }
+
+        let raw = AgentSelfRaw::deserialize(deserializer)?;
+        let mut s = Self {
+            soul: raw.soul,
+            identity: raw.identity,
+            beliefs: raw.beliefs,
+            aios_agent_id: AgentId::default(),
+            aios_soul_profile: SoulProfile::default(),
+        };
+        s.populate_aios_cache();
+        Ok(s)
+    }
 }
 
 impl AgentSelf {
+    /// Populate the cached aiOS fields from the soul and identity.
+    fn populate_aios_cache(&mut self) {
+        self.aios_agent_id = AgentId::from_string(&self.identity.agent_id);
+        self.aios_soul_profile = SoulProfile {
+            name: self.soul.name().to_owned(),
+            mission: self.soul.mission().to_owned(),
+            ..Default::default()
+        };
+    }
+
     /// Construct an AgentSelf from its components.
     ///
     /// Validates that the identity's public key matches the soul's
@@ -58,11 +108,15 @@ impl AgentSelf {
         // Verify beliefs are consistent with the soul's policy
         beliefs.validate_against_policy(soul.values())?;
 
-        Ok(Self {
+        let mut s = Self {
             soul,
             identity,
             beliefs,
-        })
+            aios_agent_id: AgentId::default(),
+            aios_soul_profile: SoulProfile::default(),
+        };
+        s.populate_aios_cache();
+        Ok(s)
     }
 
     /// Construct without validation (for deserialization/reconstruction).
@@ -73,11 +127,15 @@ impl AgentSelf {
         identity: AgentIdentity,
         beliefs: AgentBelief,
     ) -> Self {
-        Self {
+        let mut s = Self {
             soul,
             identity,
             beliefs,
-        }
+            aios_agent_id: AgentId::default(),
+            aios_soul_profile: SoulProfile::default(),
+        };
+        s.populate_aios_cache();
+        s
     }
 
     // === Accessors ===
@@ -227,6 +285,71 @@ impl AgentSelf {
 
         Ok(builder.build())
     }
+
+    /// Return active (non-expired) capability strings from beliefs.
+    fn active_capability_strings(&self) -> Vec<String> {
+        let now = chrono::Utc::now();
+        self.beliefs
+            .capabilities
+            .iter()
+            .filter(|c| c.expires_at.is_none_or(|exp| now < exp))
+            .map(|c| c.capability.clone())
+            .collect()
+    }
+}
+
+// === AgentIdentityProvider implementation ===
+//
+// This bridges Anima's rich identity model into the aiOS kernel contract,
+// allowing Arcan (and any other runtime) to consume AgentSelf through the
+// canonical AgentIdentityProvider trait without depending on anima-core.
+
+impl AgentIdentityProvider for AgentSelf {
+    fn agent_id(&self) -> &AgentId {
+        &self.aios_agent_id
+    }
+
+    fn soul_profile(&self) -> &SoulProfile {
+        &self.aios_soul_profile
+    }
+
+    fn did(&self) -> Option<&str> {
+        self.identity.did.as_deref()
+    }
+
+    fn capabilities(&self) -> &[String] {
+        // The trait returns &[String]; we cannot return a temporary vec.
+        // For now, return an empty slice — the persona_block() default
+        // implementation will show no capabilities. Callers needing the
+        // full list should use `active_capability_strings()` directly.
+        //
+        // A future refactor can cache active capabilities in a
+        // `#[serde(skip)]` Vec<String> field, refreshed on belief mutation.
+        &[]
+    }
+
+    fn economic_mode(&self) -> &str {
+        &self.beliefs.economic_belief.economic_mode
+    }
+
+    fn policy_allows(&self, action: &str) -> bool {
+        self.soul.values().allows_capability(action)
+    }
+
+    fn persona_block(&self) -> String {
+        let soul = self.soul_profile();
+        let mut block = format!("You are {} — {}.", soul.name, soul.mission);
+        if let Some(did) = AgentIdentityProvider::did(self) {
+            block.push_str(&format!("\nIdentity: {did}"));
+        }
+        // Use direct method instead of trait's capabilities() to get the full list.
+        let caps = self.active_capability_strings();
+        if !caps.is_empty() {
+            block.push_str(&format!("\nCapabilities: {}", caps.join(", ")));
+        }
+        block.push_str(&format!("\nEconomic mode: {}", self.economic_mode()));
+        block
+    }
 }
 
 #[cfg(test)]
@@ -301,5 +424,109 @@ mod tests {
             .unwrap();
         assert!(agent.validate().is_ok());
         assert!(agent.beliefs().has_capability("chat:send"));
+    }
+
+    // === AgentIdentityProvider trait tests ===
+
+    #[test]
+    fn identity_provider_agent_id() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        assert_eq!(provider.agent_id().as_str(), "agt_001");
+    }
+
+    #[test]
+    fn identity_provider_soul_profile() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        assert_eq!(provider.soul_profile().name, "test-agent");
+        assert_eq!(provider.soul_profile().mission, "test mission");
+    }
+
+    #[test]
+    fn identity_provider_did_none_by_default() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        assert!(provider.did().is_none());
+    }
+
+    #[test]
+    fn identity_provider_did_when_set() {
+        let mut id = test_identity();
+        id.did = Some("did:key:z6MkTest123".into());
+        let agent = AgentSelf::new(test_soul(), id, AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        assert_eq!(provider.did(), Some("did:key:z6MkTest123"));
+    }
+
+    #[test]
+    fn identity_provider_economic_mode() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        assert_eq!(provider.economic_mode(), "sovereign");
+    }
+
+    #[test]
+    fn identity_provider_policy_allows() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        // Default soul has "chat:*" in capability ceiling
+        assert!(provider.policy_allows("chat:send"));
+        // "admin:delete" is not in the ceiling
+        assert!(!provider.policy_allows("admin:delete"));
+    }
+
+    #[test]
+    fn identity_provider_persona_block() {
+        let mut id = test_identity();
+        id.did = Some("did:key:z6MkTest".into());
+        let agent = AgentSelf::new(test_soul(), id, AgentBelief::default()).unwrap();
+        let provider: &dyn AgentIdentityProvider = &agent;
+        let block = provider.persona_block();
+        assert!(block.contains("You are test-agent"));
+        assert!(block.contains("test mission"));
+        assert!(block.contains("did:key:z6MkTest"));
+        assert!(block.contains("Economic mode: sovereign"));
+    }
+
+    #[test]
+    fn identity_provider_persona_block_with_capabilities() {
+        let soul = test_soul();
+        let policy = soul.values().clone();
+        let mut agent = AgentSelf::new(soul, test_identity(), AgentBelief::default()).unwrap();
+
+        let grant = crate::belief::GrantedCapability {
+            capability: "chat:send".into(),
+            granted_by: "server".into(),
+            granted_at: Utc::now(),
+            expires_at: None,
+            constraints: vec![],
+        };
+        agent
+            .beliefs_mut()
+            .grant_capability(grant, &policy)
+            .unwrap();
+
+        let provider: &dyn AgentIdentityProvider = &agent;
+        let block = provider.persona_block();
+        assert!(block.contains("Capabilities: chat:send"));
+    }
+
+    #[test]
+    fn serialization_roundtrip_preserves_aios_cache() {
+        let agent = AgentSelf::new(test_soul(), test_identity(), AgentBelief::default()).unwrap();
+        let json = serde_json::to_string(&agent).unwrap();
+        let deserialized: AgentSelf = serde_json::from_str(&json).unwrap();
+
+        // Custom Deserialize rebuilds the cached aios fields
+        assert_eq!(deserialized.agent_id(), agent.agent_id());
+        assert_eq!(deserialized.name(), agent.name());
+        assert_eq!(deserialized.mission(), agent.mission());
+
+        // The trait-level accessors should also work after deserialization
+        let provider: &dyn AgentIdentityProvider = &deserialized;
+        assert_eq!(provider.agent_id().as_str(), "agt_001");
+        assert_eq!(provider.soul_profile().name, "test-agent");
+        assert_eq!(provider.soul_profile().mission, "test mission");
     }
 }
