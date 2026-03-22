@@ -12,10 +12,11 @@ edition = "2024"
 rust-version = "1.85"
 license = "MIT"
 authors = ["Broomva Tech <contact@broomva.tech>"]
-repository = "https://github.com/broomva/life"
-homepage = "https://broomva.tech"
-keywords = ["agent", "identity", "soul", "llm", "anima"]
-categories = ["command-line-utilities", "authentication"]
+repository = "https://github.com/broomva/anima"
+homepage = "https://docs.broomva.tech/docs/life/anima"
+description = "Agent identity, beliefs, and self-model for the Life Agent OS"
+keywords = ["agent", "identity", "did", "ai", "trust"]
+categories = ["authentication", "cryptography"]
 
 [workspace.dependencies]
 # Internal
