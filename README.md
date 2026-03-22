@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024_Edition-orange.svg)](https://www.rust-lang.org/)
+[![Tests](https://img.shields.io/badge/tests-passing-green.svg)](#)
+[![docs](https://img.shields.io/badge/docs-broomva.tech-purple.svg)](https://docs.broomva.tech/docs/life/anima)
 
 **Agent identity, beliefs, and self-model for the Life Agent OS** -- the crate that answers *who the agent is*, while every other crate answers what the agent does.
 
