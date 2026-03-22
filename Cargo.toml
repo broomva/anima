@@ -25,7 +25,7 @@ anima-identity = { path = "crates/anima-identity", version = "0.1.0" }
 anima-lago = { path = "crates/anima-lago", version = "0.1.0" }
 
 # Canonical contract
-aios-protocol = { path = "../aiOS/crates/aios-protocol", version = "0.1.0" }
+aios-protocol = { path = "../aiOS/crates/aios-protocol", version = "0.2.0" }
 
 # Persistence
 lago-core = { path = "../lago/crates/lago-core", version = "0.2.1" }
