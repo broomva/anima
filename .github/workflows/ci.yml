@@ -23,6 +23,8 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
+          # Exclude apps from aiOS workspace (they have deps not needed downstream)
+          cd ../aiOS && sed -i 's|"apps/aios-api",||;s|"apps/aiosd",||' Cargo.toml && cd -
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
       - uses: dtolnay/rust-toolchain@stable
@@ -38,6 +40,8 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
+          # Exclude apps from aiOS workspace (they have deps not needed downstream)
+          cd ../aiOS && sed -i 's|"apps/aios-api",||;s|"apps/aiosd",||' Cargo.toml && cd -
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
       - uses: dtolnay/rust-toolchain@stable
@@ -55,6 +59,8 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
+          # Exclude apps from aiOS workspace (they have deps not needed downstream)
+          cd ../aiOS && sed -i 's|"apps/aios-api",||;s|"apps/aiosd",||' Cargo.toml && cd -
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
       - uses: dtolnay/rust-toolchain@stable
@@ -69,6 +75,8 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
+          # Exclude apps from aiOS workspace (they have deps not needed downstream)
+          cd ../aiOS && sed -i 's|"apps/aios-api",||;s|"apps/aiosd",||' Cargo.toml && cd -
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
       - uses: dtolnay/rust-toolchain@stable
