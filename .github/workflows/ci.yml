@@ -23,11 +23,11 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only crates needed by this project
+          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
           python3 -c "
           import re
           with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\", \"crates/aios-events\", \"crates/aios-policy\", \"crates/aios-runtime\", \"crates/aios-sandbox\", \"crates/aios-tools\"]', c, flags=re.DOTALL)
+          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
           with open('../aiOS/Cargo.toml','w') as f: f.write(c)
           "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
@@ -45,11 +45,11 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only crates needed by this project
+          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
           python3 -c "
           import re
           with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\", \"crates/aios-events\", \"crates/aios-policy\", \"crates/aios-runtime\", \"crates/aios-sandbox\", \"crates/aios-tools\"]', c, flags=re.DOTALL)
+          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
           with open('../aiOS/Cargo.toml','w') as f: f.write(c)
           "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
@@ -69,11 +69,11 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only crates needed by this project
+          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
           python3 -c "
           import re
           with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\", \"crates/aios-events\", \"crates/aios-policy\", \"crates/aios-runtime\", \"crates/aios-sandbox\", \"crates/aios-tools\"]', c, flags=re.DOTALL)
+          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
           with open('../aiOS/Cargo.toml','w') as f: f.write(c)
           "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
@@ -90,11 +90,11 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only crates needed by this project
+          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
           python3 -c "
           import re
           with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\", \"crates/aios-events\", \"crates/aios-policy\", \"crates/aios-runtime\", \"crates/aios-sandbox\", \"crates/aios-tools\"]', c, flags=re.DOTALL)
+          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
           with open('../aiOS/Cargo.toml','w') as f: f.write(c)
           "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
