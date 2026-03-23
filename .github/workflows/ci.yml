@@ -31,6 +31,7 @@ jobs:
           for path, members in [
             ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
             ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+            ('../lago/Cargo.toml', ['crates/lago-core', 'crates/lago-journal', 'crates/lago-store']),
           ]:
             with open(path) as f: c = f.read()
             ml = ', '.join(f'\"{m}\"' for m in members)
@@ -58,6 +59,7 @@ jobs:
           for path, members in [
             ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
             ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+            ('../lago/Cargo.toml', ['crates/lago-core', 'crates/lago-journal', 'crates/lago-store']),
           ]:
             with open(path) as f: c = f.read()
             ml = ', '.join(f'\"{m}\"' for m in members)
@@ -87,6 +89,7 @@ jobs:
           for path, members in [
             ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
             ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+            ('../lago/Cargo.toml', ['crates/lago-core', 'crates/lago-journal', 'crates/lago-store']),
           ]:
             with open(path) as f: c = f.read()
             ml = ', '.join(f'\"{m}\"' for m in members)
@@ -113,6 +116,7 @@ jobs:
           for path, members in [
             ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
             ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+            ('../lago/Cargo.toml', ['crates/lago-core', 'crates/lago-journal', 'crates/lago-store']),
           ]:
             with open(path) as f: c = f.read()
             ml = ', '.join(f'\"{m}\"' for m in members)
