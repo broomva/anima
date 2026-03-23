@@ -23,15 +23,20 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
-          python3 -c "
-          import re
-          with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
-          with open('../aiOS/Cargo.toml','w') as f: f.write(c)
-          "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
+          # Trim sibling workspaces to only crates anima directly needs
+          python3 -c "
+          import re
+          for path, members in [
+            ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
+            ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+          ]:
+            with open(path) as f: c = f.read()
+            ml = ', '.join(f'\"{m}\"' for m in members)
+            c = re.sub(r'members\s*=\s*\[.*?\]', f'members = [{ml}]', c, flags=re.DOTALL)
+            with open(path,'w') as f: f.write(c)
+          "
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
@@ -45,15 +50,20 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
-          python3 -c "
-          import re
-          with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
-          with open('../aiOS/Cargo.toml','w') as f: f.write(c)
-          "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
+          # Trim sibling workspaces to only crates anima directly needs
+          python3 -c "
+          import re
+          for path, members in [
+            ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
+            ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+          ]:
+            with open(path) as f: c = f.read()
+            ml = ', '.join(f'\"{m}\"' for m in members)
+            c = re.sub(r'members\s*=\s*\[.*?\]', f'members = [{ml}]', c, flags=re.DOTALL)
+            with open(path,'w') as f: f.write(c)
+          "
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
@@ -69,15 +79,20 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
-          python3 -c "
-          import re
-          with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
-          with open('../aiOS/Cargo.toml','w') as f: f.write(c)
-          "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
+          # Trim sibling workspaces to only crates anima directly needs
+          python3 -c "
+          import re
+          for path, members in [
+            ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
+            ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+          ]:
+            with open(path) as f: c = f.read()
+            ml = ', '.join(f'\"{m}\"' for m in members)
+            c = re.sub(r'members\s*=\s*\[.*?\]', f'members = [{ml}]', c, flags=re.DOTALL)
+            with open(path,'w') as f: f.write(c)
+          "
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --workspace
@@ -90,15 +105,20 @@ jobs:
       - name: Checkout sibling dependencies
         run: |
           git clone --depth 1 https://github.com/broomva/aiOS.git ../aiOS
-          # Trim aiOS workspace to only aios-protocol (the only crate anima needs)
-          python3 -c "
-          import re
-          with open('../aiOS/Cargo.toml') as f: c = f.read()
-          c = re.sub(r'members\s*=\s*\[.*?\]', 'members = [\"crates/aios-protocol\"]', c, flags=re.DOTALL)
-          with open('../aiOS/Cargo.toml','w') as f: f.write(c)
-          "
           git clone --depth 1 https://github.com/broomva/lago.git ../lago
           git clone --depth 1 https://github.com/broomva/haima.git ../haima
+          # Trim sibling workspaces to only crates anima directly needs
+          python3 -c "
+          import re
+          for path, members in [
+            ('../aiOS/Cargo.toml', ['crates/aios-protocol']),
+            ('../haima/Cargo.toml', ['crates/haima-core', 'crates/haima-wallet']),
+          ]:
+            with open(path) as f: c = f.read()
+            ml = ', '.join(f'\"{m}\"' for m in members)
+            c = re.sub(r'members\s*=\s*\[.*?\]', f'members = [{ml}]', c, flags=re.DOTALL)
+            with open(path,'w') as f: f.write(c)
+          "
       - uses: dtolnay/rust-toolchain@stable
       - name: Install cargo-deny
         run: cargo install cargo-deny --locked
